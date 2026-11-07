@@ -2,6 +2,7 @@ import os
 import re
 from datetime import date
 from enum import Enum
+from typing import Any
 
 
 class Prioridad(Enum):
@@ -25,11 +26,11 @@ class Areas(Enum):
     SECRETARIA = "Secretaría"
 class Estudiante:
     _nombre: str
-    _mail: str
+    _email: str
     tipo: TipoEstudiante
 
-    def __init__(self, nombre: str, mail: str, tipo:TipoEstudiante):
-        self.mail = mail
+    def __init__(self, nombre: str, email: str, tipo:TipoEstudiante):
+        self.email = email
         self.nombre = nombre
         self.tipo = tipo
 
@@ -39,22 +40,25 @@ class Estudiante:
 
     @nombre.setter
     def nombre(self, nombre):
-        if len(nombre.trim()) > 0:
-            self._nombre = nombre
+        if len(nombre.strip()) > 0:
+            self._nombre = nombre.strip()
         else:
             raise ValueError("El nombre no puede estar vacío")
     
     @property
-    def mail(self):
-        return self._mail
+    def email(self):
+        return self._email
 
-    @mail.setter
-    def mail(self, mail):
+    @email.setter
+    def email(self, email):
         patron = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        if re.match(patron, mail.trim()) is not None:
-            self._mail = mail.trim().lower()
+        if re.match(patron, email.strip()) is not None:
+            self._email = email.strip().lower()
         else:
             raise ValueError("Debe ingresar un mail válido")
+
+    def __str__(self):
+        return f"Estudiante:\n\tNombre: {self.nombre}\n\tMail: {self.email}\n\tTipo: {self.tipo.value}"
 
 
 class Responsable:
@@ -71,11 +75,13 @@ class Responsable:
 
     @nombre.setter
     def nombre(self, nombre):
-        if len(nombre.trim()) > 0:
-            self._nombre = nombre.trim()
+        if len(nombre.strip()) > 0:
+            self._nombre = nombre.strip()
         else:
             raise ValueError("El nombre no puede estar vacío")
 
+    def __str__(self):
+        return f"Responsable:\n\tNombre: {self.nombre}\n\tArea: {self.area.value}"
 
 class Solicitud:
     estudiante: Estudiante
@@ -89,14 +95,17 @@ class Solicitud:
         estudiante: Estudiante,
         responsable: Responsable,
         prioridad: Prioridad,
-        estado: EstadoSolicitud
     ):
-        if estudiante and responsable and prioridad and estado:
+        if estudiante and responsable and prioridad:
             self.estudiante = estudiante
             self.responsable = responsable
             self.prioridad = prioridad
-            self.estado = estado
+            self.estado = EstadoSolicitud.PENDIENTE
             self.fecha = date.today()
+        else:
+            raise ValueError("Datos incompletos para cargar la solicitud: ")
+    def __str__(self):
+        return f"Solicitud:\n\t{self.estudiante}\n\t{self.responsable}\n\t{self.prioridad}\n\t{self.estado.value}\n\t{self.fecha}"
 
 
 # Listas globales para simular base de datos
@@ -109,206 +118,197 @@ class DataManager:
     def __init__(self):
         pass
 
-    def guardar_solicitud(self, n, e, t, p, s, r, f):
-        # 1. Obsesión por primitivos & 3. Lista larga de parámetros & 4. Nombres poco descriptivos
-        # 2. Anidamiento excesivo (Arrow anti-pattern)
-        if n != "":
-            if e != "":
-                if t != "":
-                    if p != "":
-                        if s != "":
-                            if r != "":
-                                # 5. Cadenas hardcodeadas y comparaciones redundantes
-                                if (
-                                    (p == "Alta") == True
-                                    or (p == "Media") == True
-                                    or (p == "Baja") == True
-                                ):
-                                    # 7. Persistencia frágil mediante cadenas planas
-                                    linea = (
-                                        n
-                                        + ","
-                                        + e
-                                        + ","
-                                        + t
-                                        + ","
-                                        + p
-                                        + ","
-                                        + s
-                                        + ","
-                                        + r
-                                        + ","
-                                        + f
-                                        + "\n"
-                                    )
-                                    sol.append(linea)
-                                    print("Guardado correctamente")
-                                else:
-                                    pass  # 8. Validación silenciosa sin feedback
-                            else:
-                                pass
-                        else:
-                            pass
-                    else:
-                        pass
-                else:
-                    pass
-            else:
-                pass
-        else:
-            pass
-
-    # 4. Nombres poco descriptivos
-    def actualizarProceso(self, n_busca):
-        for i in range(len(sol)):
-            parts = sol[i].strip().split(",")
-            # 5. Cadenas hardcodeadas y comparación redundante
-            if (parts[0] == n_busca) == True:
-                parts[4] = "Proceso"  # Cambio de estado hardcodeado
-                sol[i] = ",".join(parts)
-
-    # 4. Nombres poco descriptivos
-    def actualizarCerrada(self, n_busca):
-        for i in range(len(sol)):
-            parts = sol[i].strip().split(",")
-            # 5. Cadenas hardcodeadas y comparación redundante
-            if (parts[0] == n_busca) == True:
-                parts[4] = "Cerrada"  # Cambio de estado hardcodeado
-                sol[i] = ",".join(parts)
-
-    # 4. Nombres poco descriptivos
-    def actualizarPendiente(self, n_busca):
-        for i in range(len(sol)):
-            parts = sol[i].strip().split(",")
-            # 5. Cadenas hardcodeadas y comparación redundante
-            if (parts[0] == n_busca) == True:
-                parts[4] = "Pendiente"  # Cambio de estado hardcodeado
-                sol[i] = ",".join(parts)
-
 
 class ProcessHandler:
     def __init__(self):
         self.dm = DataManager()
 
-    def run(self):
-        # 2. Anidamiento excesivo
+    def list_options(self, lista:list | type[Enum]):
+        elementos = list(lista)
+        if not elementos:
+            print("La lista esta vacía.")
+        for i, elemento in enumerate(elementos, start=1):
+            print(f"{i} - {elemento}")
+
+
+    def handler_option_list(self, lista:list | type[Enum]) -> Any:
+        elementos = list(lista)
+        if not elementos:
+            print("La lista esta vacía")
+            return None
+
         while True:
-            print("\n--- MENÚ PRINCIPAL ---")
-            print("1. Gestión de estudiantes")
-            print("2. Gestión de Responsables")
-            print("3. Gestión de Solicitudes")
-            print("4. Salir")
+            try:
+                option = int(input(f"Elija opción (1-{len(elementos)}): "))
+            except ValueError:
+                print("Se debe ingresar un número")
+                continue
 
-            op = input("Elija opción (1-4): ")
+            if not 1 <= option <= len(elementos):
+                print("Ingrese un valor dentro del rango válido")
+                continue
 
-            if op == "1":
-                while True:
-                    print("\n--- SUBMENÚ: ESTUDIANTES ---")
-                    print("1. Alta")
-                    print("2. Listar")
-                    print("3. Buscar por nombre")
-                    print("4. Volver al menú principal")
-                    sub_op = input("Elija opción (1-4): ")
+            return elementos[option - 1]
 
-                    if sub_op == "1":
-                        # 4. Nombres poco descriptivos
-                        # 6. Acoplamiento de I/O con lógica de negocio
-                        n = input("Nombre: ")
-                        e = input("Email: ")
-                        # 7. Persistencia frágil mediante cadenas planas
-                        est.append(n + "," + e)
-                    elif sub_op == "2":
-                        for e in est:
-                            print(e)
-                    elif sub_op == "3":
-                        nom = input("Ingrese nombre a buscar: ")
+    def handler_menu_principal(self):
+        while True:
+            self.menu_principal()
+            option = input("Elija opción (1-4): ")
+            match option:
+                case "1":
+                    self.handler_submenu_estudiantes()
+                case "2":
+                    self.handler_submenu_responsables()
+                case "3":
+                    self.handler_submenu_solicitudes()
+                case "4":
+                    break
+                case _:
+                    print("\nOpción inválida. Ingrese un número del 1 al 4")
 
-                        for e in est:
-                            if nom == e.split(",")[0]:
-                                print(e)
-                    elif sub_op == "4":
-                        break
-                    else:
-                        print("Opción inválida")
+    def handler_submenu_estudiantes(self):
+        while True:
+            self.sub_menu_estudiantes()
+            option = input("Elija opción (1-4)")
+            match option:
+                case "1":
+                    nombre = input("Nombre: ")
+                    email = input("Email: ")
+                    self.list_options(TipoEstudiante)
+                    tipo:TipoEstudiante = self.handler_option_list(TipoEstudiante)
+                    try:
+                        nuevo_estudiante = Estudiante(nombre, email, tipo)
+                        estudiantes.append(nuevo_estudiante)
+                    except ValueError as e:
+                        print("Error de validación de información de estudiantes: ", e)
+                case "2":
+                    self.list_options(estudiantes)
+                case "3":
+                    nombre = input("Nombre del estudiante a buscar: ")
+                    for estudiante in estudiantes:
+                        if (estudiante.nombre == nombre):
+                            print(estudiante)
+                        else:
+                            print("Estudiante no encontrado.")
+                case "4":
+                    break
+                case _:
+                    print("\nOpción inválida. Ingrese un número del 1 al 4")
 
-            elif op == "2":
-                while True:
-                    print("\n--- SUBMENÚ: RESPONSABLES ---")
-                    print("1. Alta")
-                    print("2. Listar")
-                    print("3. Volver al menú principal")
-                    sub_op = input("Elija opción (1-3): ")
+    def handler_submenu_responsables(self):
+        while True:
+            self.sub_menu_responsables()
+            option = input("Elija opción (1-3): ")
+            match option:
+                case "1":
+                    nombre = input("Nombre del responsable: ")
+                    print("Area que se desempeña: ")
+                    self.list_options(Areas)
+                    area = self.handler_option_list(Areas)
+                    try:
+                        nuevo_responsable = Responsable(nombre, area)
+                        responsables.append(nuevo_responsable)
+                    except ValueError as e:
+                        print("Error de validación de responsable: ", e)
 
-                    if sub_op == "1":
-                        # 4. Nombres poco descriptivos
-                        # 6. Acoplamiento de I/O con lógica de negocio
-                        r_nom = input("Nombre del responsable: ")
-                        r_area = input("Área: ")
-                        ## 7. Persistencia frágil mediante cadenas planas
-                        res.append(r_nom + "," + r_area)
-                    elif sub_op == "2":
-                        for r in res:
-                            print(r)
-                    elif sub_op == "3":
-                        break
-                    else:
-                        print("Opción inválida")
+                case "2":
+                    self.list_options(responsables)
+                case "3":
+                    break
+                case _:
+                    print("\nOpción inválida. Ingrese un número del 1 al 3")
 
-            elif op == "3":
-                while True:
-                    print("\n--- SUBMENÚ: SOLICITUDES ---")
-                    print("1. Alta")
-                    print("2. Cambiar estado")
-                    print("3. Asignar responsable")
-                    print("4. Listar")
-                    print("5. Volver al menú principal")
-                    sub_op = input("Elija opción (1-5): ")
+    def handler_submenu_solicitudes(self):
+        while True:
+            self.sub_menu_solicitudes()
+            option = input("Elija opción (1-5): ")
+            match option:
+                case "1":
+                    if not (estudiantes and responsables):
+                        print("No se encuentran estudiantes o responsables cargados")
+                        continue
+                    print("Estudiante que efectua la solicitud: ")
+                    self.list_options(estudiantes)
+                    estudiante = self.handler_option_list(estudiantes)
 
-                    if sub_op == "1":
-                        # 1. Obsesión por primitivos
-                        # 3. Lista larga de parámetros
-                        # 4. Nombres poco descriptivos
+                    print("\nResponsable: ")
+                    self.list_options(responsables)
+                    responsable = self.handler_option_list(responsables)
 
-                        n = input("Nombre del estudiante: ")
-                        e = input("Email: ")
-                        t = input("Tipo: ")
-                        p = input("Prioridad (Alta/Media/Baja): ")
-                        s = input("Estado inicial: ")
-                        r = input("Responsable: ")
-                        f = input("Fecha: ")
-                        self.dm.guardar_solicitud(n, e, t, p, s, r, f)
-                    elif sub_op == "2":
-                        # 4. Nombres poco descriptivos
-                        nom = input("Nombre del estudiante de la solicitud: ")
-                        nuevo_s = input("Nuevo estado (Pendiente/Proceso/Cerrada): ")
-                        if nuevo_s == "Pendiente":
-                            self.dm.actualizarPendiente(nom)
-                        elif nuevo_s == "Proceso":
-                            self.dm.actualizarProceso(nom)
-                        elif nuevo_s == "Cerrada":
-                            self.dm.actualizarCerrada(nom)
-                    elif sub_op == "3":
-                        # 4. Nombres poco descriptivos
-                        nom = input("Nombre del estudiante de la solicitud: ")
-                        nuevo_r = input("Nuevo responsable: ")
-                        for i in range(len(sol)):
-                            if nom == sol[i].split(",")[0]:
-                                parts = sol[i].split(",")
-                                parts[5] = nuevo_r
-                                sol[i] = ",".join(parts)
-                    elif sub_op == "4":
-                        for s in sol:
-                            print(s)
-                    elif sub_op == "5":
-                        break
-                    else:
-                        print("Opción inválida")
+                    print("\nPrioridad: ")
+                    self.list_options(Prioridad)
+                    prioridad = self.handler_option_list(Prioridad)
 
-            elif op == "4":
-                print("\nSaliendo del sistema...")
-                break
-            else:
-                print("\nOpción inválida. Ingrese un número del 1 al 4.")
+                    try:
+                        nueva_solicitud = Solicitud(estudiante, responsable, prioridad)
+                        solicitudes.append(nueva_solicitud)
+                    except ValueError as e:
+                        print("Error en la validación de solicitud: ", e)
+                case "2":
+                    print("Seleccione la solicitud a modificar: ")
+                    self.list_options(solicitudes)
+                    solicitud_a_editar: Solicitud = self.handler_option_list(solicitudes)
+
+                    print("\nSeleccione un nuevo estado")
+                    self.list_options(EstadoSolicitud)
+                    nuevo_estado = self.handler_option_list(EstadoSolicitud)
+
+                    try:
+                        solicitud_a_editar.estado = nuevo_estado
+                    except ValueError as e:
+                        print("Error en la asignación del nuevo estado: ", e)
+
+                case "3":
+                    print("Seleccione la solicitud a modificar: ")
+                    self.list_options(solicitudes)
+                    solicitud_a_editar: Solicitud = self.handler_option_list(solicitudes)
+
+                    print("\nSeleccione un nuevo responsable")
+                    self.list_options(responsables)
+                    nuevo_responsable = self.handler_option_list(responsables)
+
+                    try:
+                        solicitud_a_editar.responsable = nuevo_responsable
+                    except ValueError as e:
+                        print("Error en la asignación del nuevo responsable: ", e)
+                case "4":
+                    self.list_options(solicitudes)
+                case "5":
+                    break
+                case _:
+                    print("\nOpción inválida. Ingrese un número del 1 al 5")
+
+    def menu_principal(self):
+        print("\n--- MENÚ PRINCIPAL ---")
+        print("1. Gestión de estudiantes")
+        print("2. Gestión de Responsables")
+        print("3. Gestión de Solicitudes")
+        print("4. Salir")
+        
+    def sub_menu_estudiantes(self):
+        print("\n--- SUBMENÚ: ESTUDIANTES ---")
+        print("1. Alta")
+        print("2. Listar")
+        print("3. Buscar por nombre")
+        print("4. Volver al menú principal")
+
+    def sub_menu_responsables(self):
+        print("\n--- SUBMENÚ: RESPONSABLES ---")
+        print("1. Alta")
+        print("2. Listar")
+        print("3. Volver al menú principal")
+
+    def sub_menu_solicitudes(self):        
+        print("\n--- SUBMENÚ: SOLICITUDES ---")
+        print("1. Alta")
+        print("2. Cambiar estado")
+        print("3. Asignar responsable")
+        print("4. Listar")
+        print("5. Volver al menú principal")
+
+    def run(self):
+        self.handler_menu_principal()
+            
 
 
 if __name__ == "__main__":
