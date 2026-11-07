@@ -12,7 +12,6 @@ class DataManager:
     def guardar_solicitud(self, n, e, t, p, s, r, f):
     # 1. Obsesión por primitivos & 3. Lista larga de parámetros & 4. Nombres poco descriptivos
     # 2. Anidamiento excesivo (Arrow anti-pattern)
-    # 6. Acoplamiento de I/O con lógica de negocio
         if n != "":
             if e != "":
                 if t != "":
@@ -59,6 +58,7 @@ class DataManager:
         else:
             pass
 
+    #4. Nombres poco descriptivos
     def actualizarProceso(self, n_busca):
         for i in range(len(sol)):
             parts = sol[i].strip().split(",")
@@ -66,7 +66,8 @@ class DataManager:
             if (parts[0] == n_busca) == True:
                 parts[4] = "Proceso"  # Cambio de estado hardcodeado
                 sol[i] = ",".join(parts)
-        
+
+    #4. Nombres poco descriptivos
     def actualizarCerrada(self, n_busca):
         for i in range(len(sol)):
             parts = sol[i].strip().split(",")
@@ -75,6 +76,7 @@ class DataManager:
                 parts[4] = "Cerrada"  # Cambio de estado hardcodeado
                 sol[i] = ",".join(parts)
 
+    #4. Nombres poco descriptivos
     def actualizarPendiente(self, n_busca):
         for i in range(len(sol)):
             parts = sol[i].strip().split(",")
@@ -91,6 +93,7 @@ class ProcessHandler:
     self.dm = DataManager()
 
   def run(self):
+    #2. Anidamiento excesivo
     while True:
       print("\n--- MENÚ PRINCIPAL ---")
       print("1. Gestión de estudiantes")
@@ -110,14 +113,19 @@ class ProcessHandler:
           sub_op = input("Elija opción (1-4): ")
 
           if sub_op == "1":
+            # 4. Nombres poco descriptivos
+            # 6. Acoplamiento de I/O con lógica de negocio
             n = input("Nombre: ")
             e = input("Email: ")
+            # 7. Persistencia frágil mediante cadenas planas
             est.append(n + ',' + e)
           elif sub_op == "2":
             for e in est:
                print(e)
           elif sub_op == "3":
+            
             nom = input("Ingrese nombre a buscar: ")
+            
             for e in est:
                if nom == e.split(',')[0]:
                   print(e)
@@ -135,8 +143,11 @@ class ProcessHandler:
           sub_op = input("Elija opción (1-3): ")
 
           if sub_op == "1":
+            # 4. Nombres poco descriptivos
+            # 6. Acoplamiento de I/O con lógica de negocio
             r_nom = input("Nombre del responsable: ")
             r_area = input("Área: ")
+            ## 7. Persistencia frágil mediante cadenas planas
             res.append(r_nom + ',' + r_area)
           elif sub_op == "2":
             for r in res:
@@ -157,6 +168,10 @@ class ProcessHandler:
           sub_op = input("Elija opción (1-5): ")
 
           if sub_op == "1":
+            # 1. Obsesión por primitivos
+            # 3. Lista larga de parámetros
+            # 4. Nombres poco descriptivos
+            
             n = input("Nombre del estudiante: ")
             e = input("Email: ")
             t = input("Tipo: ")
@@ -166,6 +181,7 @@ class ProcessHandler:
             f = input("Fecha: ")
             self.dm.guardar_solicitud(n, e, t, p, s, r, f)
           elif sub_op == "2":
+            # 4. Nombres poco descriptivos
             nom = input("Nombre del estudiante de la solicitud: ")
             nuevo_s = input("Nuevo estado (Pendiente/Proceso/Cerrada): ")
             if nuevo_s == "Pendiente":
@@ -175,6 +191,7 @@ class ProcessHandler:
             elif nuevo_s == "Cerrada":
                self.dm.actualizarCerrada(nom)
           elif sub_op == "3":
+            # 4. Nombres poco descriptivos
             nom = input("Nombre del estudiante de la solicitud: ")
             nuevo_r = input("Nuevo responsable: ")
             for i in range(len(sol)):
