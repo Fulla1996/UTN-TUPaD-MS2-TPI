@@ -1,14 +1,18 @@
 import os
 
+#Listas globales para simular base de datos   
+est:list[str] = []
+res:list[str] = []
+sol:list[str] = []
 
 class DataManager:
     def __init__(self):
-        self.file_name = "datos.txt"
+      pass
 
-    def guardar(self, n, e, t, p, s, r, f):
-        # 1. Obsesión por primitivos & 3. Lista larga de parámetros & 4. Nombres poco descriptivos
-        # 2. Anidamiento excesivo (Arrow anti-pattern)
-        # 6. Acoplamiento de I/O con lógica de negocio
+    def guardar_solicitud(self, n, e, t, p, s, r, f):
+    # 1. Obsesión por primitivos & 3. Lista larga de parámetros & 4. Nombres poco descriptivos
+    # 2. Anidamiento excesivo (Arrow anti-pattern)
+    # 6. Acoplamiento de I/O con lógica de negocio
         if n != "":
             if e != "":
                 if t != "":
@@ -38,9 +42,7 @@ class DataManager:
                                         + f
                                         + "\n"
                                     )
-                                    fl = open(self.file_name, "a")
-                                    fl.write(linea)
-                                    fl.close()
+                                    sol.append(linea)                                   
                                     print("Guardado correctamente")
                                 else:
                                     pass  # 8. Validación silenciosa sin feedback
@@ -57,160 +59,142 @@ class DataManager:
         else:
             pass
 
-    def listar(self):
-        print("--- LISTADO DE SOLICITUDES ---")
-        try:
-            fl = open(self.file_name, "r")
-            l = fl.readlines()
-            fl.close()
-            for x in l:
-                # 1. Obsesión por primitivos (parseo manual frágil por split)
-                d = x.strip().split(",")
-                if len(d) == 7:
-                    # 5. Comparaciones redundantes y anidamiento excesivo en estados
-                    if (d[4] == "Pendiente") == True:
-                        print(
-                            "Estudiante: "
-                            + d[0]
-                            + " | Tipo: "
-                            + d[2]
-                            + " | Prioridad: "
-                            + d[3]
-                            + " | Estado: "
-                            + d[4]
-                            + " | Responsable: "
-                            + d[5]
-                        )
-                    else:
-                        if (d[4] == "Proceso") == True:
-                            print(
-                                "Estudiante: "
-                                + d[0]
-                                + " | Tipo: "
-                                + d[2]
-                                + " | Prioridad: "
-                                + d[3]
-                                + " | Estado: "
-                                + d[4]
-                                + " | Responsable: "
-                                + d[5]
-                            )
-                        else:
-                            if (d[4] == "Cerrada") == True:
-                                print(
-                                    "Estudiante: "
-                                    + d[0]
-                                    + " | Tipo: "
-                                    + d[2]
-                                    + " | Prioridad: "
-                                    + d[3]
-                                    + " | Estado: "
-                                    + d[4]
-                                    + " | Responsable: "
-                                    + d[5]
-                                )
-                            else:
-                                print("Estado desconocido")
-                else:
-                    pass
-        except:
-            # 8. Ausencia de manejo real de excepciones (captura genérica y silenciosa)
-            pass
-
     def actualizarProceso(self, n_busca):
-        fl = open(self.file_name, "r")
-        lines = fl.readlines()
-        fl.close()
-        new_lines = []
-        for line in lines:
-            parts = line.strip().split(",")
+        for i in range(len(sol)):
+            parts = sol[i].strip().split(",")
             # 5. Cadenas hardcodeadas y comparación redundante
             if (parts[0] == n_busca) == True:
                 parts[4] = "Proceso"  # Cambio de estado hardcodeado
-                new_lines.append(",".join(parts) + "\n")
-            else:
-                new_lines.append(line)
-        fl = open(self.file_name, "w")
-        for nl in new_lines:
-            fl.write(nl)
-        fl.close()
+                sol[i] = ",".join(parts)
         
     def actualizarCerrada(self, n_busca):
-        fl = open(self.file_name, "r")
-        lines = fl.readlines()
-        fl.close()
-        new_lines = []
-        for line in lines:
-            parts = line.strip().split(",")
+        for i in range(len(sol)):
+            parts = sol[i].strip().split(",")
             # 5. Cadenas hardcodeadas y comparación redundante
             if (parts[0] == n_busca) == True:
                 parts[4] = "Cerrada"  # Cambio de estado hardcodeado
-                new_lines.append(",".join(parts) + "\n")
-            else:
-                new_lines.append(line)
-        fl = open(self.file_name, "w")
-        for nl in new_lines:
-            fl.write(nl)
-        fl.close()
+                sol[i] = ",".join(parts)
 
     def actualizarPendiente(self, n_busca):
-        fl = open(self.file_name, "r")
-        lines = fl.readlines()
-        fl.close()
-        new_lines = []
-        for line in lines:
-            parts = line.strip().split(",")
+        for i in range(len(sol)):
+            parts = sol[i].strip().split(",")
             # 5. Cadenas hardcodeadas y comparación redundante
             if (parts[0] == n_busca) == True:
                 parts[4] = "Pendiente"  # Cambio de estado hardcodeado
-                new_lines.append(",".join(parts) + "\n")
-            else:
-                new_lines.append(line)
-        fl = open(self.file_name, "w")
-        for nl in new_lines:
-            fl.write(nl)
-        fl.close()
+                sol[i] = ",".join(parts)
+        
 
 
 class ProcessHandler:
-    def __init__(self):
-        self.dm = DataManager()
 
-    def run(self):
+  def __init__(self):
+    self.dm = DataManager()
+
+  def run(self):
+    while True:
+      print("\n--- MENÚ PRINCIPAL ---")
+      print("1. Gestión de estudiantes")
+      print("2. Gestión de Responsables")
+      print("3. Gestión de Solicitudes")
+      print("4. Salir")
+
+      op = input("Elija opción (1-4): ")
+
+      if op == "1":
         while True:
-            print("\n1. Registrar Solicitud")
-            print("\n2. Listar Solicitudes")
-            print("\n3. Cambiar Estado a Pendiente")
-            print("\n4. Cambiar Estado a Proceso")
-            print("\n5. Cambiar Estado a Cerrada")
-            print("\n0. Salir")
-            op = input("Elija opcion: ")
+          print("\n--- SUBMENÚ: ESTUDIANTES ---")
+          print("1. Alta")
+          print("2. Listar")
+          print("3. Buscar por nombre")
+          print("4. Volver al menú principal")
+          sub_op = input("Elija opción (1-4): ")
 
-            if op == "1":
-                n = input("Nombre: ")
-                e = input("Email: ")
-                t = input("Tipo: ")
-                p = input("Prioridad (Alta/Media/Baja): ")
-                s = input("Estado inicial: ")
-                r = input("Responsable: ")
-                f = input("Fecha: ")
-                self.dm.guardar(n, e, t, p, s, r, f)
-            elif op == "2":
-                self.dm.listar()
-            elif op == "3":
-                nom = input("Nombre del estudiante a actualizar: ")
-                self.dm.actualizarPendiente(nom)
-            elif op == "4":
-                nom = input("Nombre del estudiante a actualizar: ")
-                self.dm.actualizarProceso(nom)
-            elif op == "5":
-                nom = input("Nombre del estudiante a actualizar: ")
-                self.dm.actualizarCerrada(nom)
-            elif op == "0":
-                break
-            else:
-                print("Opcion invalida")
+          if sub_op == "1":
+            n = input("Nombre: ")
+            e = input("Email: ")
+            est.append(n + ',' + e)
+          elif sub_op == "2":
+            for e in est:
+               print(e)
+          elif sub_op == "3":
+            nom = input("Ingrese nombre a buscar: ")
+            for e in est:
+               if nom == e.split(',')[0]:
+                  print(e)
+          elif sub_op == "4":
+            break
+          else:
+            print("Opción inválida")
 
+      elif op == "2":
+        while True:
+          print("\n--- SUBMENÚ: RESPONSABLES ---")
+          print("1. Alta")
+          print("2. Listar")
+          print("3. Volver al menú principal")
+          sub_op = input("Elija opción (1-3): ")
+
+          if sub_op == "1":
+            r_nom = input("Nombre del responsable: ")
+            r_area = input("Área: ")
+            res.append(r_nom + ',' + r_area)
+          elif sub_op == "2":
+            for r in res:
+               print(r)
+          elif sub_op == "3":
+            break
+          else:
+            print("Opción inválida")
+
+      elif op == "3":
+        while True:
+          print("\n--- SUBMENÚ: SOLICITUDES ---")
+          print("1. Alta")
+          print("2. Cambiar estado")
+          print("3. Asignar responsable")
+          print("4. Listar")
+          print("5. Volver al menú principal")
+          sub_op = input("Elija opción (1-5): ")
+
+          if sub_op == "1":
+            n = input("Nombre del estudiante: ")
+            e = input("Email: ")
+            t = input("Tipo: ")
+            p = input("Prioridad (Alta/Media/Baja): ")
+            s = input("Estado inicial: ")
+            r = input("Responsable: ")
+            f = input("Fecha: ")
+            self.dm.guardar_solicitud(n, e, t, p, s, r, f)
+          elif sub_op == "2":
+            nom = input("Nombre del estudiante de la solicitud: ")
+            nuevo_s = input("Nuevo estado (Pendiente/Proceso/Cerrada): ")
+            if nuevo_s == "Pendiente":
+               self.dm.actualizarPendiente(nom)
+            elif nuevo_s == "Proceso":
+               self.dm.actualizarProceso(nom)
+            elif nuevo_s == "Cerrada":
+               self.dm.actualizarCerrada(nom)
+          elif sub_op == "3":
+            nom = input("Nombre del estudiante de la solicitud: ")
+            nuevo_r = input("Nuevo responsable: ")
+            for i in range(len(sol)):
+               if nom == sol[i].split(',')[0]:
+                  parts = sol[i].split(',')
+                  parts[5] = nuevo_r
+                  sol[i] = ",".join(parts)
+          elif sub_op == "4":
+            for s in sol:
+               print(s)
+          elif sub_op == "5":
+            break
+          else:
+            print("Opción inválida")
+
+      elif op == "4":
+        print("\nSaliendo del sistema...")
+        break
+      else:
+        print("\nOpción inválida. Ingrese un número del 1 al 4.")
 
 if __name__ == "__main__":
     ph = ProcessHandler()
