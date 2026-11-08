@@ -1,4 +1,3 @@
-import os
 import re
 from datetime import date
 from enum import Enum
@@ -16,7 +15,7 @@ class EstadoSolicitud(Enum):
     CERRADA = "Cerrada"
 
 class TipoEstudiante(Enum):
-    INGRESANTE = "Ingrsante"
+    INGRESANTE = "Ingresante"
     AVANZADO = "Avanzado"
     GRADUADO = "Graduado"
 
@@ -58,7 +57,7 @@ class Estudiante:
             raise ValueError("Debe ingresar un mail válido")
 
     def __str__(self):
-        return f"Estudiante:\n\tNombre: {self.nombre}\n\tMail: {self.email}\n\tTipo: {self.tipo.value}"
+        return f"\n#### Estudiante ####\n\tNombre: {self.nombre}\n\tMail: {self.email}\n\tTipo: {self.tipo.value}"
 
 
 class Responsable:
@@ -81,7 +80,7 @@ class Responsable:
             raise ValueError("El nombre no puede estar vacío")
 
     def __str__(self):
-        return f"Responsable:\n\tNombre: {self.nombre}\n\tArea: {self.area.value}"
+        return f"\n#### Responsable ####\n\tNombre: {self.nombre}\n\tArea: {self.area.value}"
 
 class Solicitud:
     estudiante: Estudiante
@@ -105,19 +104,34 @@ class Solicitud:
         else:
             raise ValueError("Datos incompletos para cargar la solicitud: ")
     def __str__(self):
-        return f"Solicitud:\n\t{self.estudiante}\n\t{self.responsable}\n\t{self.prioridad}\n\t{self.estado.value}\n\t{self.fecha}"
-
-
-# Listas globales para simular base de datos
-estudiantes: list[Estudiante] = []
-responsables: list[Responsable] = []
-solicitudes: list[Solicitud] = []
-
+        return f"\n#### Solicitud ####\n\t{self.estudiante}\n\t{self.responsable}\n\tPrioridad: {self.prioridad.value}\n\tEstado: {self.estado.value}\n\tFecha: {self.fecha}"
 
 class DataManager:
-    def __init__(self):
-        pass
 
+    def __init__(self):
+        self._almacenamiento: dict[type, list] = {
+            Estudiante: [],
+            Responsable: [],
+            Solicitud: []
+        }
+
+    def guardar(self, objeto):
+        clase = type(objeto)
+        if clase not in self._almacenamiento:
+            self._almacenamiento[clase] = []
+        self._almacenamiento[clase].append(objeto)
+
+    def buscar_estudiante_por_nombre(self, nombre:str):
+        if not self._almacenamiento[Estudiante]:
+            print("Lista de estudiantes vacía")
+            return None
+        for estudiante in self._almacenamiento[Estudiante]:
+            if estudiante.nombre.lower() == nombre.strip().lower():
+                return estudiante
+
+    def obtener_todo(self, clase):
+        return self._almacenamiento.get(clase,[])
+    
 
 class ProcessHandler:
     def __init__(self):
@@ -178,18 +192,18 @@ class ProcessHandler:
                     tipo:TipoEstudiante = self.handler_option_list(TipoEstudiante)
                     try:
                         nuevo_estudiante = Estudiante(nombre, email, tipo)
-                        estudiantes.append(nuevo_estudiante)
+                        self.dm.guardar(nuevo_estudiante)
                     except ValueError as e:
                         print("Error de validación de información de estudiantes: ", e)
                 case "2":
-                    self.list_options(estudiantes)
+                    self.list_options(self.dm.obtener_todo(Estudiante))
                 case "3":
                     nombre = input("Nombre del estudiante a buscar: ")
-                    for estudiante in estudiantes:
-                        if (estudiante.nombre == nombre):
-                            print(estudiante)
-                        else:
-                            print("Estudiante no encontrado.")
+                    estudiante_encontrado = self.dm.buscar_estudiante_por_nombre(nombre)
+                    if estudiante_encontrado:
+                        print(estudiante_encontrado)
+                    else:
+                        print("Estudiante no encontrado")
                 case "4":
                     break
                 case _:
@@ -207,12 +221,12 @@ class ProcessHandler:
                     area = self.handler_option_list(Areas)
                     try:
                         nuevo_responsable = Responsable(nombre, area)
-                        responsables.append(nuevo_responsable)
+                        self.dm.guardar(nuevo_responsable)
                     except ValueError as e:
                         print("Error de validación de responsable: ", e)
 
                 case "2":
-                    self.list_options(responsables)
+                    self.list_options(self.dm.obtener_todo(Responsable))
                 case "3":
                     break
                 case _:
@@ -224,16 +238,16 @@ class ProcessHandler:
             option = input("Elija opción (1-5): ")
             match option:
                 case "1":
-                    if not (estudiantes and responsables):
+                    if not (self.dm.obtener_todo(Estudiante) and self.dm.obtener_todo(Responsable)):
                         print("No se encuentran estudiantes o responsables cargados")
                         continue
                     print("Estudiante que efectua la solicitud: ")
-                    self.list_options(estudiantes)
-                    estudiante = self.handler_option_list(estudiantes)
+                    self.list_options(self.dm.obtener_todo(Estudiante))
+                    estudiante = self.handler_option_list(self.dm.obtener_todo(Estudiante))
 
                     print("\nResponsable: ")
-                    self.list_options(responsables)
-                    responsable = self.handler_option_list(responsables)
+                    self.list_options(self.dm.obtener_todo(Responsable))
+                    responsable = self.handler_option_list(self.dm.obtener_todo(Responsable))
 
                     print("\nPrioridad: ")
                     self.list_options(Prioridad)
@@ -241,13 +255,13 @@ class ProcessHandler:
 
                     try:
                         nueva_solicitud = Solicitud(estudiante, responsable, prioridad)
-                        solicitudes.append(nueva_solicitud)
+                        self.dm.guardar(nueva_solicitud)
                     except ValueError as e:
                         print("Error en la validación de solicitud: ", e)
                 case "2":
                     print("Seleccione la solicitud a modificar: ")
-                    self.list_options(solicitudes)
-                    solicitud_a_editar: Solicitud = self.handler_option_list(solicitudes)
+                    self.list_options(self.dm.obtener_todo(Solicitud))
+                    solicitud_a_editar: Solicitud = self.handler_option_list(self.dm.obtener_todo(Solicitud))
 
                     print("\nSeleccione un nuevo estado")
                     self.list_options(EstadoSolicitud)
@@ -260,19 +274,19 @@ class ProcessHandler:
 
                 case "3":
                     print("Seleccione la solicitud a modificar: ")
-                    self.list_options(solicitudes)
-                    solicitud_a_editar: Solicitud = self.handler_option_list(solicitudes)
+                    self.list_options(self.dm.obtener_todo(Solicitud))
+                    solicitud_a_editar: Solicitud = self.handler_option_list(self.dm.obtener_todo(Solicitud))
 
                     print("\nSeleccione un nuevo responsable")
-                    self.list_options(responsables)
-                    nuevo_responsable = self.handler_option_list(responsables)
+                    self.list_options(self.dm.obtener_todo(Responsable))
+                    nuevo_responsable = self.handler_option_list(self.dm.obtener_todo(Responsable))
 
                     try:
                         solicitud_a_editar.responsable = nuevo_responsable
                     except ValueError as e:
                         print("Error en la asignación del nuevo responsable: ", e)
                 case "4":
-                    self.list_options(solicitudes)
+                    self.list_options(self.dm.obtener_todo(Solicitud))
                 case "5":
                     break
                 case _:
