@@ -129,6 +129,14 @@ class DataManager:
             if estudiante.nombre.lower() == nombre.strip().lower():
                 return estudiante
 
+    def buscar_solicitud_por_nombre_estudiante(self, nombre:str):
+        if not self._almacenamiento[Solicitud]:
+            print("Lista de solicitudes vacía")
+            return None
+        for solicitud in self._almacenamiento[Solicitud]:
+            if solicitud.estudiante.nombre.lower() == nombre.strip().lower():
+                return solicitud
+
     def obtener_todo(self, clase):
         return self._almacenamiento.get(clase,[])
     
@@ -235,7 +243,7 @@ class ProcessHandler:
     def handler_submenu_solicitudes(self):
         while True:
             self.sub_menu_solicitudes()
-            option = input("Elija opción (1-5): ")
+            option = input("Elija opción (1-6): ")
             match option:
                 case "1":
                     if not (self.dm.obtener_todo(Estudiante) and self.dm.obtener_todo(Responsable)):
@@ -288,9 +296,12 @@ class ProcessHandler:
                 case "4":
                     self.list_options(self.dm.obtener_todo(Solicitud))
                 case "5":
+                    nombre = input("Nombre del estudiante a buscar en Solicitudes: ")
+                    print(self.dm.buscar_solicitud_por_nombre_estudiante(nombre))
+                case "6":
                     break
                 case _:
-                    print("\nOpción inválida. Ingrese un número del 1 al 5")
+                    print("\nOpción inválida. Ingrese un número del 1 al 6")
 
     def menu_principal(self):
         print("\n--- MENÚ PRINCIPAL ---")
@@ -318,7 +329,8 @@ class ProcessHandler:
         print("2. Cambiar estado")
         print("3. Asignar responsable")
         print("4. Listar")
-        print("5. Volver al menú principal")
+        print("5. Buscar solicitud por nombre del Estudiante")
+        print("6. Volver al menú principal")
 
     def run(self):
         self.handler_menu_principal()
